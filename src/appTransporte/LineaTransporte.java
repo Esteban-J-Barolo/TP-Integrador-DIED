@@ -1,10 +1,12 @@
 package appTransporte;
 
+import java.util.ArrayList;
+
 public class LineaTransporte {
 	private String nombre;
 	private String color;
 	private boolean activa = false;
-	private Trayecto trayecto;
+	private ArrayList<Ruta> rutas;
 	
 	public LineaTransporte(String nombre, String color) {
 		this.nombre=nombre;

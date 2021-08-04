@@ -7,7 +7,6 @@ import java.awt.Insets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -253,7 +252,6 @@ public class MainAPP{
 				resultado.next();
 				do {
 					if ( resultado.getString(2).equalsIgnoreCase("1500-01-01") ) {//esta en mantenimento
-						System.out.println("b ");
 						if (bdPostre.consultaAgregarSQL("UPDATE Mantenimiento SET diaFin='"+LocalDate.now()+"'  WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaInicio='"+resultado.getString(1)+"'", "No se finalizo el mantenimento.") == 1)
 							JOptionPane.showMessageDialog(null, "Se pudo finalizar el mantenimento.");
 					}

@@ -7,13 +7,11 @@ public class Estacion {
     private int horarioApertura;
     private int horarioCierre;
     private boolean abierta = false;
-    private ArrayList<Mantenimiento> mantenimentos = new ArrayList<Mantenimiento>();
     
     public Estacion(String nombre, int horarioApertura, int horarioCierre) {
     	this.nombre=nombre;
     	this.horarioApertura=horarioApertura;
     	this.horarioCierre=horarioCierre;
-    	//crear un mentenimento de creacion
     }
     
     public void cambiarEstado() {
