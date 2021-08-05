@@ -1,0 +1,53 @@
+CREATE TABLE public.Usuario(
+nombre varchar(30) PRIMARY KEY,
+contrasenia varchar(50)
+);
+
+CREATE TABLE public.Estacion(
+nombre varchar(30) PRIMARY KEY,
+horarioApertura integer,
+horarioCierre integer,
+abierta boolean
+);
+
+CREATE TABLE public.Mantenimiento(
+nombre_estacion varchar(30) REFERENCES public.Estacion(nombre),
+diaInicio Date,
+diaFin Date,
+observaciones varchar(500),
+PRIMARY KEY (nombre_estacion,  diaInicio)
+);
+
+CREATE TABLE public.LineaTransporte(
+nombre varchar(30) PRIMARY KEY,
+color varchar(20),
+activa boolean
+);
+
+CREATE TABLE public.Ruta(
+nombre_linea varchar(30) REFERENCES public.LineaTransporte(nombre),
+distancia integer,
+duracion integer,
+costo integer,
+cantPasajeros integer,
+activa boolean,
+nombre_origen varchar(30) REFERENCES public.Estacion(nombre),
+nombre_destino varchar(30) REFERENCES public.Estacion(nombre),
+PRIMARY KEY (nombre_linea, nombre_origen, nombre_destino)
+);
+
+
+CREATE TABLE public.Boleto(
+numBoleto integer PRIMARY KEY,
+origen varchar(30),
+destino varchar(30),
+emailCliente varchar(50),
+nombreCliente varchar(30),
+fecha Date,
+costo integer
+);
+
+CREATE TABLE public.BoletoRecorrido(
+numBoleto integer PRIMARY KEY REFERENCES public.Boleto(numBoleto),
+nombre_estacion varchar(30) REFERENCES public.Estacion(nombre)
+);
