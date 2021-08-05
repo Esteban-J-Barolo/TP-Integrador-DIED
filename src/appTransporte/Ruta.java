@@ -1,7 +1,6 @@
 package appTransporte;
 
 public class Ruta {
-	private static int id=0;
 	private int distancia;//km
 	private int duracion;//tiempo en minutos
 	private int cantPasajeros;//maxima

@@ -6,11 +6,12 @@ public class LineaTransporte {
 	private String nombre;
 	private String color;
 	private boolean activa = false;
-	private ArrayList<Ruta> rutas;
+	private ArrayList<Ruta> rutas = new ArrayList<Ruta>();
 	
-	public LineaTransporte(String nombre, String color) {
+	public LineaTransporte(String nombre, String color, Boolean estado) {
 		this.nombre=nombre;
 		this.color=color;
+		this.activa=estado;
 	}
 	
 	public void setNombre(String nombre) {
@@ -26,12 +27,8 @@ public class LineaTransporte {
 		else this.activa=true;
 	}
 	
-	public LineaTransporte buscarN(String nombre) {
-		return null;
-	}
-	
-	public LineaTransporte buscarC(String color) {
-		return null;
+	public void agregarRuta(Ruta r) {
+		rutas.add(r);
 	}
 
 }

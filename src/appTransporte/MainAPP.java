@@ -7,6 +7,9 @@ import java.awt.Insets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -23,6 +26,7 @@ public class MainAPP{
 	
 	private JFrame ventanaPrincipal = new JFrame("Transporte Multimodal");
 	private static Postgre bdPostre = new Postgre();
+	private ArrayList<LineaTransporte> lineas = new ArrayList<LineaTransporte>(); 
 	
 	public static void main(String[] args) {
 		
@@ -218,7 +222,104 @@ public class MainAPP{
 	}
 	
 	private void crearVenta() {
+		ventanaPrincipal.setMinimumSize(new Dimension(200, 400));
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+
+		JComboBox<String> estaciones0 = new JComboBox<String>();
+		JComboBox<String> estaciones1 = new JComboBox<String>();
 		
+		JButton boton0 = new JButton("Atras");
+		boton0.addActionListener(e -> accesoUsuario());
+		
+		JButton boton1 = new JButton("Siguiente");
+		boton0.addActionListener(e -> verRecorridos());
+		
+		JLabel etiqueta0 = new JLabel("Desde");
+		JLabel etiqueta1 = new JLabel("Hasta");
+				
+		ResultSet resultado = null;
+		
+		resultado = bdPostre.consultaSQL("SELECT nombre, horarioApertura, horarioCierre FROM Estacion");
+		
+		try {
+			while(resultado.next()) {
+				estaciones0.addItem( resultado.getString(1) );
+				estaciones1.addItem( resultado.getString(1) );
+				}
+		} catch (SQLException e1) {
+			System.out.println("error en agregar a la lista de seleccion "+e1);
+		}
+		
+				GridBagConstraints constraints = new GridBagConstraints();
+		
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.gridwidth = 1;
+		constraints.gridheight = 1;
+		constraints.insets = new Insets(5, 5, 5, 5);
+		panel.add(etiqueta0, constraints);
+		constraints.gridx = 1;
+		panel.add(etiqueta1, constraints);
+		constraints.gridx = 0;
+		constraints.gridy = 1;
+		panel.add(estaciones0, constraints);
+		constraints.gridx = 1;
+		panel.add(estaciones1, constraints);
+		constraints.gridx = 0;
+		constraints.gridy = 2;
+		panel.add(boton0, constraints);
+		constraints.gridx = 1;
+		panel.add(boton1, constraints);
+
+		ventanaPrincipal.setContentPane(panel);
+		ventanaPrincipal.setVisible(true);
+		
+	}
+
+	private void verRecorridos() {
+		Map <String, Estacion> estaciones = new HashMap<String, Estacion>();
+		
+		ventanaPrincipal.setMinimumSize(new Dimension(200, 400));
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		
+		JButton boton0 = new JButton("Atras");
+		boton0.addActionListener(e -> crearVenta());
+		
+		ResultSet resultado = null;
+		
+		resultado = bdPostre.consultaSQL("SELECT nombre, horarioApertura, horarioCierre FROM Estacion");
+		
+		try {
+			while(resultado.next()) {
+				estaciones.put(resultado.getString(1), new Estacion(resultado.getString(1), resultado.getInt(2), resultado.getInt(3)));
+				}
+		} catch (SQLException e1) {
+			System.out.println("error en agregar a la lista de estaciones "+e1);
+		}
+		
+		resultado = bdPostre.consultaSQL("SELECT nombre, color, activa FROM LineaTransporte ");
+		
+		try {
+			while(resultado.next()) {
+				LineaTransporte linea = new LineaTransporte(resultado.getString(1), resultado.getString(2), resultado.getBoolean(3));
+				
+				ResultSet resultado2 = null;
+				
+				resultado2 = bdPostre.consultaSQL("SELECT distancia, duracion, costo, cantPasajeros, activa, nombre_origen, nombre_destino FROM Ruta WHERE nombre_linea='"+resultado.getString(1)+"'");
+				while(resultado2.next()) {
+					linea.agregarRuta(new Ruta(estaciones.get(resultado2.getString(5)), estaciones.get(resultado2.getString(6)), resultado2.getInt(1), resultado2.getInt(2), resultado2.getInt(3), resultado2.getInt(4), resultado2.getBoolean(5)));										
+				}
+				lineas.add(linea);
+						
+			}
+		} catch (SQLException e1) {
+			System.out.println("error en buscar lineas de transporte "+e1);
+		}
+
+		ventanaPrincipal.setContentPane(panel);
+		ventanaPrincipal.setVisible(true);
 	}
 
 	private void crearMantenimiento() {
@@ -237,7 +338,8 @@ public class MainAPP{
 
 		JButton boton2 = new JButton("Comenzar");
 		boton2.addActionListener( e -> {
-			if (bdPostre.consultaAgregarSQL("INSERT INTO Mantenimiento VALUES ('"+estaciones.getSelectedItem()+"', '"+LocalDate.now().toString()+"', '1500-01-01');", "No se empeso el mantenimento.") == 1)
+			if (bdPostre.consultaAgregarSQL("INSERT INTO Mantenimiento VALUES ('"+estaciones.getSelectedItem()+"', '"+LocalDate.now().toString()+"');", "No se empeso el mantenimento.") == 1 && 
+					bdPostre.consultaAgregarSQL("UPDATE Estacion SET abierta=false  WHERE nombre='"+estaciones.getSelectedItem()+"'", "No se finalizo el mantenimento.") == 1)
 				JOptionPane.showMessageDialog(null, "Se pudo realizar el mantenimento");
 			accesoUsuario();
 		});
@@ -246,15 +348,14 @@ public class MainAPP{
 		boton0.addActionListener( e -> {
 			ResultSet resultado = null;
 		
-			resultado = bdPostre.consultaSQL("SELECT diaInicio, diaFin FROM Mantenimiento WHERE nombre_estacion='"+estaciones.getSelectedItem()+"';");
+			resultado = bdPostre.consultaSQL("SELECT diaInicio, diaFin FROM Mantenimiento WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaFin isnull;");
 		
 			try {
 				resultado.next();
 				do {
-					if ( resultado.getString(2).equalsIgnoreCase("1500-01-01") ) {//esta en mantenimento
-						if (bdPostre.consultaAgregarSQL("UPDATE Mantenimiento SET diaFin='"+LocalDate.now()+"'  WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaInicio='"+resultado.getString(1)+"'", "No se finalizo el mantenimento.") == 1)
-							JOptionPane.showMessageDialog(null, "Se pudo finalizar el mantenimento.");
-					}
+					if (bdPostre.consultaAgregarSQL("UPDATE Mantenimiento SET diaFin='"+LocalDate.now()+"'  WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaInicio='"+resultado.getString(1)+"'", "No se finalizo el mantenimento.") == 1 && 
+							bdPostre.consultaAgregarSQL("UPDATE Estacion SET abierta=true  WHERE nombre='"+estaciones.getSelectedItem()+"'", "No se finalizo el mantenimento.") == 1)
+						JOptionPane.showMessageDialog(null, "Se pudo finalizar el mantenimento.");
 				}while(resultado.next() && !resultado.getString(2).isEmpty());
 			} catch (SQLException e1) {
 				System.out.println("error en: mantenimento (finalizar)"+e1);
@@ -267,7 +368,7 @@ public class MainAPP{
 		estaciones.addActionListener( e -> {
 			
 			ResultSet resultado = null;
-			boolean terminar = false;
+			
 			GridBagConstraints constraints = new GridBagConstraints();
 
 			constraints.gridwidth = 1;
@@ -276,34 +377,32 @@ public class MainAPP{
 			constraints.gridy = 3;
 			constraints.gridx = 2;
 			
-			resultado = bdPostre.consultaSQL("SELECT diaInicio, diaFin FROM Mantenimiento WHERE nombre_estacion='"+estaciones.getSelectedItem()+"'");
+			resultado = bdPostre.consultaSQL("SELECT abierta FROM Estacion WHERE nombre='"+estaciones.getSelectedItem()+"'");
 
 			try {
 
-				while(resultado.next() && !terminar) {
+				while(resultado.next()) {
 					
-					if ( resultado.getString(2).equalsIgnoreCase("1500-01-01") ) {//esta en mantenimento
+					if (!resultado.getBoolean(1)) {//esta en mantenimento
 						
 						panel.remove(boton2);
 						panel.add(boton0, constraints);
 						ventanaPrincipal.setVisible(true);
 						ventanaPrincipal.repaint();
-						terminar=true;
+					}else {
+						panel.remove(boton0);
+						panel.add(boton2, constraints);
+						ventanaPrincipal.setVisible(true);
+						ventanaPrincipal.repaint();
 					}
 				}
 			} catch (SQLException e1) {
 				System.out.println("error en: lista desplegable");
 			}
-			if(!terminar) {
-				panel.remove(boton0);
-				panel.add(boton2, constraints);
-				ventanaPrincipal.setVisible(true);
-				ventanaPrincipal.repaint();
-			}
 		});
 		ResultSet resultado = null;
 		
-		resultado = bdPostre.consultaSQL("SELECT nombre FROM Estacion WHERE abierta");
+		resultado = bdPostre.consultaSQL("SELECT nombre FROM Estacion");
 		
 		try {
 			while(resultado.next()) {
@@ -477,7 +576,7 @@ public class MainAPP{
 		JButton boton0 = new JButton("Agregar");
 		boton0.addActionListener( e -> { 
 			if (bdPostre.consultaAgregarSQL(
-					"INSERT INTO Ruta VALUES ('"+nombreLinea+"', "+distancia.getText()+", "+duracion.getText()+", "+cantPasajeros.getText()+", "+estado.isSelected()+", '"+estaciones0.getSelectedItem()+"', '"+estaciones1.getSelectedItem()+"');", 
+					"INSERT INTO Ruta VALUES ('"+nombreLinea+"', "+distancia.getText()+", "+duracion.getText()+", "+costo.getText()+", "+cantPasajeros.getText()+", "+estado.isSelected()+", '"+estaciones0.getSelectedItem()+"', '"+estaciones1.getSelectedItem()+"');", 
 					"Error al agregar la trayectoria.") == 1)
 				JOptionPane.showMessageDialog(null, "Trayectoria agragada con exito.");
 		});
@@ -579,6 +678,8 @@ public class MainAPP{
 				Integer.parseInt(horarioCierre1.getText());
 				if (bdPostre.consultaAgregarSQL("INSERT INTO Estacion VALUES ('"+nombre.getText()+"', "+horarioApertura0.getText()+horarioApertura1.getText()+", "+horarioCierre0.getText()+horarioCierre1.getText()+", "+estado.isSelected()+");", "No se pudo agregar la estación.") == 1)
 					JOptionPane.showMessageDialog(null, "Estación agragada con exito.");
+				if (!estado.isSelected()) bdPostre.consultaAgregarSQL("INSERT INTO Mantenimiento(nombre_estacion, diaInicio, observaciones) VALUES ('"+nombre.getText()+"', '"+LocalDate.now().toString()+"', 'Creación de la estación.');", "No se empeso el mantenimento de creado.");
+					
 			}catch (NumberFormatException e1) {
 				JOptionPane.showMessageDialog(null, "Horario invalido");
 			}
