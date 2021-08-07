@@ -23,6 +23,32 @@ public class Ruta {
 		if(activa) this.activa=false;
 		else this.activa=true;
 	}
+
+	public boolean isOrigen(Estacion origen2) {
+		return this.origen.getNombre().equals(origen2.getNombre());
+	}
+	
+	public boolean isDestino(Estacion destino2) {
+		return this.destino.getNombre().equals(destino2.getNombre());
+	}
+
+	public Estacion estacionDestino() {
+		return this.destino;
+	}
+	
+	public int costo() {
+		return this.costo;
+	}
+
+	public int duracion() {
+		return this.duracion;
+	}
+
+	public int tam() {
+		return this.distancia;
+	}
+	
+	
 	
 	
 }

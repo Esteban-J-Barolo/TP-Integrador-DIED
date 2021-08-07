@@ -1,6 +1,10 @@
 package appTransporte;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.util.ArrayList;
+
+import javax.swing.JPanel;
 
 public class Estacion {
 	private String nombre;
@@ -13,18 +17,7 @@ public class Estacion {
     	this.horarioApertura=horarioApertura;
     	this.horarioCierre=horarioCierre;
     }
-    
-    public void cambiarEstado() {
-		if(abierta) {
-			//crear mantenimiento
-			this.abierta=false;
-		}
-		else {
-			this.abierta=true;
-			//finalizar mantenimiento
-		}
-	}
-    
+        
     public void setNombre(String nombre) {
     	this.nombre=nombre;
     }
@@ -37,12 +30,12 @@ public class Estacion {
     	this.horarioCierre=hora;
     }
     
-    public Estacion buscar(String nombre) {
-    	return null;
+    public String getNombre() {
+    	return this.nombre;
     }
     
-    public Estacion buscar(int horario) {
-    	return null;
+    public FiguraCirculo dibujar() {
+		return new FiguraCirculo(this.nombre);
     }
 
 }

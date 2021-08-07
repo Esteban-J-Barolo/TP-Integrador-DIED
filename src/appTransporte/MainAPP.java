@@ -233,14 +233,18 @@ public class MainAPP{
 		boton0.addActionListener(e -> accesoUsuario());
 		
 		JButton boton1 = new JButton("Siguiente");
-		boton0.addActionListener(e -> verRecorridos());
+		boton1.addActionListener(e -> {
+			if(!estaciones0.getSelectedItem().equals(estaciones1.getSelectedItem()))
+			verRecorridos(estaciones0.getSelectedItem().toString(), estaciones1.getSelectedItem().toString());
+			else JOptionPane.showMessageDialog(null, "Por favor seleccione estaciones diferentes.");
+		});
 		
 		JLabel etiqueta0 = new JLabel("Desde");
 		JLabel etiqueta1 = new JLabel("Hasta");
 				
 		ResultSet resultado = null;
 		
-		resultado = bdPostre.consultaSQL("SELECT nombre, horarioApertura, horarioCierre FROM Estacion");
+		resultado = bdPostre.consultaSQL("SELECT nombre, horarioApertura, horarioCierre FROM Estacion WHERE abierta");
 		
 		try {
 			while(resultado.next()) {
@@ -251,7 +255,7 @@ public class MainAPP{
 			System.out.println("error en agregar a la lista de seleccion "+e1);
 		}
 		
-				GridBagConstraints constraints = new GridBagConstraints();
+		GridBagConstraints constraints = new GridBagConstraints();
 		
 		constraints.gridx = 0;
 		constraints.gridy = 0;
@@ -277,29 +281,41 @@ public class MainAPP{
 		
 	}
 
-	private void verRecorridos() {
+	private void verRecorridos(String origen, String destino) {
 		Map <String, Estacion> estaciones = new HashMap<String, Estacion>();
 		
-		ventanaPrincipal.setMinimumSize(new Dimension(200, 400));
+		ventanaPrincipal.setMinimumSize(new Dimension(800, 400));
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
+		
+		LineaTransporte lineaRapida = null, lineaCorta=null, lineaBarata=null;
 		
 		JButton boton0 = new JButton("Atras");
 		boton0.addActionListener(e -> crearVenta());
 		
+		JButton boton1 = new JButton("Siguiente");
+		
+		
+		JLabel etiqueta0 = new JLabel("Selececcione");
+		
+		JCheckBox opcion1 = new JCheckBox("El más rápido");
+		JCheckBox opcion2 = new JCheckBox("El de menor distancia");
+		JCheckBox opcion3 = new JCheckBox("El más barato");
+		
 		ResultSet resultado = null;
 		
-		resultado = bdPostre.consultaSQL("SELECT nombre, horarioApertura, horarioCierre FROM Estacion");
+		resultado = bdPostre.consultaSQL("SELECT nombre, horarioApertura, horarioCierre FROM Estacion WHERE abierta");
 		
 		try {
 			while(resultado.next()) {
+				//System.out.println(resultado.getString(1)+" "+resultado.getInt(2));
 				estaciones.put(resultado.getString(1), new Estacion(resultado.getString(1), resultado.getInt(2), resultado.getInt(3)));
 				}
 		} catch (SQLException e1) {
 			System.out.println("error en agregar a la lista de estaciones "+e1);
 		}
 		
-		resultado = bdPostre.consultaSQL("SELECT nombre, color, activa FROM LineaTransporte ");
+		resultado = bdPostre.consultaSQL("SELECT nombre, color, activa FROM LineaTransporte WHERE activa");
 		
 		try {
 			while(resultado.next()) {
@@ -307,17 +323,167 @@ public class MainAPP{
 				
 				ResultSet resultado2 = null;
 				
-				resultado2 = bdPostre.consultaSQL("SELECT distancia, duracion, costo, cantPasajeros, activa, nombre_origen, nombre_destino FROM Ruta WHERE nombre_linea='"+resultado.getString(1)+"'");
+				resultado2 = bdPostre.consultaSQL("SELECT distancia, duracion, costo, cantPasajeros, activa, nombre_origen, nombre_destino FROM Ruta WHERE nombre_linea='"+resultado.getString(1)+"' AND activa");
 				while(resultado2.next()) {
-					linea.agregarRuta(new Ruta(estaciones.get(resultado2.getString(5)), estaciones.get(resultado2.getString(6)), resultado2.getInt(1), resultado2.getInt(2), resultado2.getInt(3), resultado2.getInt(4), resultado2.getBoolean(5)));										
+					linea.agregarRuta(new Ruta(estaciones.get(resultado2.getString(6)), estaciones.get(resultado2.getString(7)), resultado2.getInt(1), resultado2.getInt(2), resultado2.getInt(3), resultado2.getInt(4), resultado2.getBoolean(5)));										
 				}
 				lineas.add(linea);
-						
 			}
 		} catch (SQLException e1) {
 			System.out.println("error en buscar lineas de transporte "+e1);
 		}
+		
+		int velocidad=10000, tamanio=10, costo=10000;
+		for(LineaTransporte linea: lineas) {
+			int velCam = linea.velocidadCamino(estaciones.get(origen), estaciones.get(destino));
+			if( velocidad>=velCam ){
+				velocidad=velCam;
+				lineaRapida=linea;
+			}
+			int tamCam = linea.tamCamino(estaciones.get(origen), estaciones.get(destino));
+			if( tamanio>=tamCam ){
+				tamanio=tamCam;
+				lineaCorta=linea;
+			}
+			int costoCam = linea.costoCamino(estaciones.get(origen), estaciones.get(destino));
+			if( costo>=costoCam ){
+				costo=costoCam;
+				lineaBarata=linea;
+			}
+		}
+		LineaTransporte lineaR = lineaRapida, lineaC = lineaCorta, lineaB = lineaBarata;
+		boton1.addActionListener(e -> {
+			if(opcion1.isSelected()) {
+				//mas rapido
+				boleto(lineaR, estaciones.get(origen), estaciones.get(destino));
+			}else {
+				if(opcion2.isSelected()) {
+					//menor distancia
+					boleto(lineaC, estaciones.get(origen), estaciones.get(destino));
+				}else {
+					if(opcion3.isSelected()) {
+						//mas barato
+						boleto(lineaB, estaciones.get(origen), estaciones.get(destino));
+					}else {
+						//no seleccionao ninguno
+						JOptionPane.showMessageDialog(null, "Trayecto no seleccionado.");
+					}
+				}
+			}
+		});
+		
+		GridBagConstraints constraints = new GridBagConstraints();
+		
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.gridwidth = 2;
+		constraints.gridheight = 1;
+		constraints.insets = new Insets(5, 5, 5, 5);
+		panel.add(etiqueta0, constraints);
+		constraints.gridy = 1;
+		panel.add(opcion1, constraints);
+				
+		constraints.gridy = 2;
+		panel.add(opcion2, constraints);
+		constraints.gridy = 3;
+		panel.add(opcion3, constraints);
 
+		constraints.gridwidth = 1;
+		constraints.gridy = 4;
+		panel.add(boton0, constraints);
+		constraints.gridx = 1;
+		panel.add(boton1, constraints);
+		
+		constraints.gridx = 2;
+		constraints.gridy = 1;
+		constraints.ipadx = 200;
+		constraints.ipady = 30;
+		constraints.insets = new Insets(0, 0, 0, 0);
+		panel.add(lineaR.dibujar(estaciones.get(origen), estaciones.get(destino)), constraints);
+		constraints.gridy = 2;
+		panel.add(lineaC.dibujar(estaciones.get(origen), estaciones.get(destino)), constraints);
+		constraints.gridy = 3;
+		panel.add(lineaB.dibujar(estaciones.get(origen), estaciones.get(destino)), constraints);
+
+
+		ventanaPrincipal.setContentPane(panel);
+		ventanaPrincipal.setVisible(true);
+	}
+	
+	private void boleto(LineaTransporte linea, Estacion origen, Estacion destino) {
+		ventanaPrincipal.setMinimumSize(new Dimension(200, 400));
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		
+		JButton boton0 = new JButton("Atras");
+		boton0.addActionListener(e -> crearVenta());
+
+		JTextField correo = new JTextField(20);
+		JTextField nombre = new JTextField(20);
+
+		JButton boton1 = new JButton("Aceptar");
+		
+
+		int numBoleto = 0;
+		ResultSet resultado = null;
+		resultado = bdPostre.consultaSQL("SELECT numBoleto FROM Boleto ORDER BY 1 DESC LIMIT 1");
+		
+		try {
+			if(resultado.next()) {
+				numBoleto=resultado.getInt(1);
+				}
+		} catch (SQLException e1) {
+			System.out.println("error en buscar el numero de boleto "+e1);
+		}
+		int num = numBoleto+1;
+		boton1.addActionListener(e -> {
+			//crear boleto
+			if (bdPostre.consultaAgregarSQL("INSERT INTO Boleto VALUES ("+ num +", '"+origen.getNombre()+"', '"+destino.getNombre()+"', '"+correo.getText()+"', '"+nombre.getText()+"', '"+LocalDate.now().toString()+"', "+linea.costoCamino(origen, destino)+" );", "Boleto error.") == 1)
+				JOptionPane.showMessageDialog(null, "Boleto creado.");
+		});
+
+		JLabel etiqueta0 = new JLabel("Nro. de Boleto: "+num);
+		JLabel etiqueta1 = new JLabel("Correo electrónico del cliente: ");
+		JLabel etiqueta2 = new JLabel("Nombre del cliente: ");
+		JLabel etiqueta3 = new JLabel("Fecha de la venta: "+LocalDate.now().toString());
+		JLabel etiqueta4 = new JLabel("Estación Origen: "+origen.getNombre());
+		JLabel etiqueta5 = new JLabel("Estación Destino: "+destino.getNombre());
+		JLabel etiqueta6 = new JLabel("Camino a seguir: "+linea.mostrarCamino(origen, destino));
+		JLabel etiqueta7 = new JLabel("Costo del boleto: "+linea.costoCamino(origen, destino));
+		
+		GridBagConstraints constraints = new GridBagConstraints();
+		
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.gridwidth = 1;
+		constraints.gridheight = 1;
+		constraints.insets = new Insets(5, 5, 5, 5);
+		panel.add(etiqueta0, constraints);
+		constraints.gridy = 1;
+		panel.add(etiqueta1, constraints);
+		constraints.gridx = 1;
+		panel.add(correo, constraints);
+		constraints.gridx = 0;
+		constraints.gridy = 2;
+		panel.add(etiqueta2, constraints);
+		constraints.gridx = 1;
+		panel.add(nombre, constraints);
+		constraints.gridx = 0;
+		constraints.gridy = 3;
+		panel.add(etiqueta3, constraints);
+		constraints.gridy = 4;
+		panel.add(etiqueta4, constraints);
+		constraints.gridy = 5;
+		panel.add(etiqueta5, constraints);
+		constraints.gridy = 6;
+		panel.add(etiqueta6, constraints);
+		constraints.gridy = 7;
+		panel.add(etiqueta7, constraints);
+		
+		constraints.gridy = 8;
+		panel.add(boton0, constraints);
+		constraints.gridx = 1;
+		panel.add(boton0, constraints);
 		ventanaPrincipal.setContentPane(panel);
 		ventanaPrincipal.setVisible(true);
 	}
@@ -637,9 +803,12 @@ public class MainAPP{
 		panel.add(estaciones0, constraints);
 		constraints.gridx = 2;
 		panel.add(estaciones1, constraints);
+
+		constraints.gridy = 7;
+		panel.add(estado, constraints);
 		
 		constraints.gridx = 1;
-		constraints.gridy = 7;
+		constraints.gridy = 8;
 		constraints.gridwidth = 2;
 		panel.add(boton0, constraints);
 		constraints.gridx = 0;
