@@ -35,6 +35,9 @@ public class Ruta {
 	public Estacion estacionDestino() {
 		return this.destino;
 	}
+	public Estacion estacionOrigen() {
+		return this.origen;
+	}
 	
 	public int costo() {
 		return this.costo;
