@@ -100,11 +100,9 @@ public class MainAPP{
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		JLabel etiqueta0 = new JLabel("Nombre de usuario ");
-		//JLabel etiqueta1 = new JLabel("Email ");
 		JLabel etiqueta2 = new JLabel("Contraseña ");
 		JLabel etiqueta3 = new JLabel("Confirmar contraseña ");
 		JTextField text0 = new JTextField(20);
-		//JTextField text1 = new JTextField(20);
 		JTextField text2 = new JTextField(20);
 		JTextField text3 = new JTextField(20);
 		
@@ -130,9 +128,6 @@ public class MainAPP{
 		constraints.insets = new Insets(5, 5, 5, 5);
 		panel.add(etiqueta0, constraints);
 
-		//constraints.gridy = 1;
-		//panel.add(etiqueta1, constraints);
-
 		constraints.gridy = 1;
 		panel.add(etiqueta2, constraints);
 
@@ -142,9 +137,6 @@ public class MainAPP{
 		constraints.gridx = 2;
 		constraints.gridy = 0;
 		panel.add(text0, constraints);
-
-		//constraints.gridy = 1;
-		//panel.add(text1, constraints);
 
 		constraints.gridy = 1;
 		panel.add(text2, constraints);
@@ -183,11 +175,11 @@ public class MainAPP{
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		
-		JButton boton0 = new JButton("Nueva Estacion");
+		JButton boton0 = new JButton("Estaciones");
 		boton0.addActionListener(e -> crearEstacion());
-		JButton boton1 = new JButton("Nueva Linea");
+		JButton boton1 = new JButton("Lineas");
 		boton1.addActionListener(e -> crearLinea());
-		JButton boton2 = new JButton("Nuevo Mantenimiento");
+		JButton boton2 = new JButton("Mantenimiento");
 		boton2.addActionListener(e -> crearMantenimiento());
 		JButton boton3 = new JButton("Vender Boleto");
 		boton3.addActionListener(e -> crearVenta());
@@ -442,19 +434,26 @@ public class MainAPP{
 		}
 		int num = numBoleto+1;
 		boton1.addActionListener(e -> {
-			//crear boleto
+			//crear boleto en la base de datos
 			if (bdPostre.consultaAgregarSQL("INSERT INTO Boleto VALUES ("+ num +", '"+origen.getNombre()+"', '"+destino.getNombre()+"', '"+correo.getText()+"', '"+nombre.getText()+"', '"+LocalDate.now().toString()+"', "+linea.costoCamino(origen, destino, new ArrayList<Estacion>())+" );", "Boleto error.") == 1)
 				JOptionPane.showMessageDialog(null, "Boleto creado.");
+			crearVenta();
 		});
 
-		JLabel etiqueta0 = new JLabel("Nro. de Boleto: "+num);
+		JLabel etiqueta0 = new JLabel("Nro. de Boleto: ");
 		JLabel etiqueta1 = new JLabel("Correo electrónico del cliente: ");
 		JLabel etiqueta2 = new JLabel("Nombre del cliente: ");
-		JLabel etiqueta3 = new JLabel("Fecha de la venta: "+LocalDate.now().toString());
-		JLabel etiqueta4 = new JLabel("Estación Origen: "+origen.getNombre());
-		JLabel etiqueta5 = new JLabel("Estación Destino: "+destino.getNombre());
-		JLabel etiqueta6 = new JLabel("Camino a seguir: "+linea.mostrarCamino(camino));
-		JLabel etiqueta7 = new JLabel("Costo del boleto: "+linea.costoCamino(origen, destino, new ArrayList<Estacion>()));
+		JLabel etiqueta3 = new JLabel("Fecha de la venta: ");
+		JLabel etiqueta4 = new JLabel("Estación Origen: ");
+		JLabel etiqueta5 = new JLabel("Estación Destino: ");
+		JLabel etiqueta6 = new JLabel("Camino a seguir: ");
+		JLabel etiqueta7 = new JLabel("Costo del boleto: ");
+		JLabel etiqueta00 = new JLabel(String.valueOf(num));
+		JLabel etiqueta30 = new JLabel(LocalDate.now().toString());
+		JLabel etiqueta40 = new JLabel(origen.getNombre());
+		JLabel etiqueta50 = new JLabel(destino.getNombre());
+		JLabel etiqueta60 = new JLabel(linea.mostrarCamino(camino));
+		JLabel etiqueta70 = new JLabel( String.valueOf(linea.costoCamino(origen, destino, new ArrayList<Estacion>())) );
 		
 		GridBagConstraints constraints = new GridBagConstraints();
 		
@@ -485,10 +484,25 @@ public class MainAPP{
 		constraints.gridy = 7;
 		panel.add(etiqueta7, constraints);
 		
+		constraints.gridx = 1;
+		constraints.gridy = 0;
+		panel.add(etiqueta00, constraints);
+		constraints.gridy = 3;
+		panel.add(etiqueta30, constraints);
+		constraints.gridy = 4;
+		panel.add(etiqueta40, constraints);
+		constraints.gridy = 5;
+		panel.add(etiqueta50, constraints);
+		constraints.gridy = 6;
+		panel.add(etiqueta60, constraints);
+		constraints.gridy = 7;
+		panel.add(etiqueta70, constraints);
+		
+		constraints.gridx = 0;
 		constraints.gridy = 8;
 		panel.add(boton0, constraints);
 		constraints.gridx = 1;
-		panel.add(boton0, constraints);
+		panel.add(boton1, constraints);
 		ventanaPrincipal.setContentPane(panel);
 		ventanaPrincipal.setVisible(true);
 	}
@@ -509,8 +523,9 @@ public class MainAPP{
 
 		JButton boton2 = new JButton("Comenzar");
 		boton2.addActionListener( e -> {
-			if (bdPostre.consultaAgregarSQL("INSERT INTO Mantenimiento VALUES ('"+estaciones.getSelectedItem()+"', '"+LocalDate.now().toString()+"');", "No se empeso el mantenimento.") == 1 && 
-					bdPostre.consultaAgregarSQL("UPDATE Estacion SET abierta=false  WHERE nombre='"+estaciones.getSelectedItem()+"'", "No se finalizo el mantenimento.") == 1)
+			if (bdPostre.consultaAgregarSQL("INSERT INTO Mantenimiento VALUES ('"+estaciones.getSelectedItem()+"', '"+LocalDate.now().toString()+"');", "ERROR, no se empezo el mantenimento.") == 1 && 
+					bdPostre.consultaAgregarSQL("UPDATE Estacion SET abierta=false  WHERE nombre='"+estaciones.getSelectedItem()+"'", "ERROR al actualizar estado de la estación (false).") == 1 && 
+					bdPostre.consultaAgregarSQL("UPDATE Ruta SET activa=false  WHERE nombre_origen='"+estaciones.getSelectedItem()+"' OR nombre_destino='"+estaciones.getSelectedItem()+"'", "ERROR al actualizar estado de la ruta (false).") == 1)
 				JOptionPane.showMessageDialog(null, "Se pudo realizar el mantenimento");
 			accesoUsuario();
 		});
@@ -518,14 +533,14 @@ public class MainAPP{
 		JButton boton0 = new JButton("Finalizar");
 		boton0.addActionListener( e -> {
 			ResultSet resultado = null;
-		
+			//Busca mantenimiento que no este finalizado
 			resultado = bdPostre.consultaSQL("SELECT diaInicio, diaFin FROM Mantenimiento WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaFin isnull;");
-		
 			try {
 				resultado.next();
 				do {
-					if (bdPostre.consultaAgregarSQL("UPDATE Mantenimiento SET diaFin='"+LocalDate.now()+"'  WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaInicio='"+resultado.getString(1)+"'", "No se finalizo el mantenimento.") == 1 && 
-							bdPostre.consultaAgregarSQL("UPDATE Estacion SET abierta=true  WHERE nombre='"+estaciones.getSelectedItem()+"'", "No se finalizo el mantenimento.") == 1)
+					if (bdPostre.consultaAgregarSQL("UPDATE Mantenimiento SET diaFin='"+LocalDate.now()+"'  WHERE nombre_estacion='"+estaciones.getSelectedItem()+"' AND diaInicio='"+resultado.getString(1)+"'", "ERROR, no se finalizo el mantenimento.") == 1 && 
+							bdPostre.consultaAgregarSQL("UPDATE Estacion SET abierta=true  WHERE nombre='"+estaciones.getSelectedItem()+"'", "ERROR al actualizar estado de la estación (true).") == 1 && 
+							bdPostre.consultaAgregarSQL("UPDATE Ruta SET activa=true  WHERE nombre_origen='"+estaciones.getSelectedItem()+"' OR nombre_destino='"+estaciones.getSelectedItem()+"'", "ERROR al actualizar estado de la ruta (true).") == 1)
 						JOptionPane.showMessageDialog(null, "Se pudo finalizar el mantenimento.");
 				}while(resultado.next() && !resultado.getString(2).isEmpty());
 			} catch (SQLException e1) {
@@ -632,8 +647,8 @@ public class MainAPP{
 		});
 		JButton boton1 = new JButton("Atras");
 		boton1.addActionListener( e -> accesoUsuario());
-		JButton boton2 = new JButton("Agregar una trayectoria");
-		boton2.addActionListener( e -> crearTrayectoria());
+		JButton boton2 = new JButton("Trayectorias");
+		boton2.addActionListener( e -> menuTrayectoria());
 
 		GridBagConstraints constraints = new GridBagConstraints();
 
@@ -669,22 +684,23 @@ public class MainAPP{
 		ventanaPrincipal.setVisible(true);
 	}
 	
-	private void crearTrayectoria() {
-		//seleccionar linea de transporte a la que se le agrega la trayectoria
-		//mostrar las estacione y mediante un click se seleccionan en orden del trayecto
-
+	private void menuTrayectoria() {
 		ventanaPrincipal.setMinimumSize(new Dimension(600, 400));
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 
+
 		JLabel etiqueta0 = new JLabel("Seleccionar linea");
 
 		JComboBox<String> lineas = new JComboBox<String>();
+
+		JButton boton0 = new JButton("Atras");
+		boton0.addActionListener( e -> crearLinea());
 		
-		JButton boton0 = new JButton("Siguiente");
-		boton0.addActionListener( e -> crearTrayecto( (String) lineas.getSelectedItem()));
-		JButton boton1 = new JButton("Atras");
-		boton1.addActionListener( e -> crearLinea());
+		JButton boton1 = new JButton("Crear");
+		boton1.addActionListener( e -> crearTrayecto( (String) lineas.getSelectedItem()));
+		JButton boton2 = new JButton("Cambiar estado");
+		boton2.addActionListener( e -> estadoTrayectoria((String) lineas.getSelectedItem()));
 		
 		ResultSet resultado = null;
 		
@@ -701,21 +717,122 @@ public class MainAPP{
 		GridBagConstraints constraints = new GridBagConstraints();
 
 		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.gridwidth = 2;
+		constraints.gridheight = 1;
+		constraints.insets = new Insets(5, 5, 5, 5);
+		panel.add(etiqueta0, constraints);
+		constraints.gridy = 1;
+		panel.add(lineas, constraints);
 		constraints.gridy = 2;
+		constraints.gridwidth = 1;
+		panel.add(boton1, constraints);
+		constraints.gridx = 1;
+		panel.add(boton2, constraints);
+		constraints.gridx = 0;
+		constraints.gridy = 3;
+		constraints.gridwidth = 2;
+		panel.add(boton0, constraints);
+		
+		ventanaPrincipal.setContentPane(panel);
+		ventanaPrincipal.setVisible(true);
+	}
+
+	private void estadoTrayectoria(String nombreLinea) {
+		ventanaPrincipal.setMinimumSize(new Dimension(600, 400));
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+
+		JComboBox<String> trayectos = new JComboBox<String>();
+		
+		JLabel etiqueta0 = new JLabel("Trayectos");
+		JLabel etiqueta1 = new JLabel("Linea");
+		JLabel etiqueta2 = new JLabel("Estado");
+		JLabel etiqueta3 = new JLabel(nombreLinea);
+		JLabel etiqueta4 = new JLabel();
+		
+		JButton boton0 = new JButton("Atras");
+		boton0.addActionListener( e -> crearLinea());
+		JButton boton1 = new JButton("Cambiar");
+		boton1.addActionListener( e -> {
+			ResultSet resultado = null;
+			String[] result = trayectos.getSelectedItem().toString().split(" - ");
+			resultado = bdPostre.consultaSQL("SELECT activa FROM Ruta WHERE nombre_linea ='"+nombreLinea+"' AND nombre_origen='"+result[0]+"' AND nombre_destino='"+result[1]+"'");
+			try {
+				resultado.next();
+				if(resultado.getBoolean(1)) {
+					if (bdPostre.consultaAgregarSQL("UPDATE Ruta SET activa=false  WHERE nombre_linea='"+nombreLinea+"' AND nombre_origen='"+result[0]+"' AND nombre_destino='"+result[1]+"'", "ERROR al actualizar estado de la trayectoria (false).") == 1 )
+						JOptionPane.showMessageDialog(null, "Se pudo realizar el cambio de estado");
+				}else {
+					if (bdPostre.consultaAgregarSQL("UPDATE Ruta SET activa=true  WHERE nombre_linea='"+nombreLinea+"' AND nombre_origen='"+result[0]+"' AND nombre_destino='"+result[1]+"'", "ERROR al actualizar estado de la trayectoria (true).") == 1 )
+						JOptionPane.showMessageDialog(null, "Se pudo realizar el cambio de estado");
+				}
+				etiqueta4.setText( String.valueOf(!resultado.getBoolean(1)) );
+				panel.repaint();
+			} catch (SQLException e1) {
+				System.out.println("Error consulta. "+e1);
+			}
+		});
+
+		ResultSet resultado = null;
+		
+		resultado = bdPostre.consultaSQL("SELECT nombre_origen, nombre_destino FROM Ruta WHERE nombre_linea ='"+nombreLinea+"'");
+		
+		try {
+			while(resultado.next()) {
+				trayectos.addItem( (resultado.getString(1)+" - "+resultado.getString(2)) );
+			}
+		} catch (SQLException e1) {
+			System.out.println("Error en agregar a la lista de seleccion de trayectos. "+e1);
+		}
+		GridBagConstraints constraints = new GridBagConstraints();
+
+		trayectos.addActionListener( e -> {
+			String[] result = trayectos.getSelectedItem().toString().split(" - ");
+			ResultSet resultado2 = null;
+			resultado2 = bdPostre.consultaSQL("SELECT activa FROM Ruta WHERE nombre_linea ='"+nombreLinea+"' AND nombre_origen='"+result[0]+"' AND nombre_destino='"+result[1]+"'");
+			try {
+				resultado2.next();
+				etiqueta4.setText( String.valueOf(resultado2.getBoolean(1)) );
+				panel.repaint();
+			} catch (SQLException e1) {
+				System.out.println("Error consulta. "+e1);
+			}
+		});
+		String[] result = trayectos.getSelectedItem().toString().split(" - ");
+		ResultSet resultado2 = null;
+		resultado2 = bdPostre.consultaSQL("SELECT activa FROM Ruta WHERE nombre_linea ='"+nombreLinea+"' AND nombre_origen='"+result[0]+"' AND nombre_destino='"+result[1]+"'");
+		try {
+			resultado2.next();
+			etiqueta4.setText( String.valueOf(resultado2.getBoolean(1)) );
+		} catch (SQLException e1) {
+			System.out.println("Error consulta. "+e1);
+		}
+
+		constraints.gridx = 1;
+		constraints.gridy = 0;
 		constraints.gridwidth = 1;
 		constraints.gridheight = 1;
 		constraints.insets = new Insets(5, 5, 5, 5);
-		panel.add(boton0, constraints);
-
-		constraints.gridy = 3;
-		panel.add(boton1, constraints);
-
-		constraints.gridy = 0;
 		panel.add(etiqueta0, constraints);
-		
 		constraints.gridy = 1;
-		panel.add(lineas, constraints);
-
+		panel.add(trayectos, constraints);
+		constraints.gridy = 2;
+		panel.add(boton1, constraints);
+		constraints.gridy = 3;
+		panel.add(boton0, constraints);
+		
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		panel.add(etiqueta1, constraints);
+		constraints.gridy = 1;
+		panel.add(etiqueta3, constraints);
+		
+		constraints.gridx = 2;
+		constraints.gridy = 0;
+		panel.add(etiqueta2, constraints);
+		constraints.gridy = 1;
+		panel.add(etiqueta4, constraints);
 		ventanaPrincipal.setContentPane(panel);
 		ventanaPrincipal.setVisible(true);
 	}
@@ -739,17 +856,22 @@ public class MainAPP{
 
 		JCheckBox estado = new JCheckBox("Activa");
 		
-		JTextField distancia = new JTextField(5);
-		JTextField duracion = new JTextField(5);
-		JTextField cantPasajeros = new JTextField(5);
-		JTextField costo = new JTextField(5);
+		JTextField distancia = new JTextField("0",5);
+		JTextField duracion = new JTextField("0",5);
+		JTextField cantPasajeros = new JTextField("0",5);
+		JTextField costo = new JTextField("0",5);
 		
 		JButton boton0 = new JButton("Agregar");
 		boton0.addActionListener( e -> { 
-			if (bdPostre.consultaAgregarSQL(
-					"INSERT INTO Ruta VALUES ('"+nombreLinea+"', "+distancia.getText()+", "+duracion.getText()+", "+costo.getText()+", "+cantPasajeros.getText()+", "+estado.isSelected()+", '"+estaciones0.getSelectedItem()+"', '"+estaciones1.getSelectedItem()+"');", 
-					"Error al agregar la trayectoria.") == 1)
-				JOptionPane.showMessageDialog(null, "Trayectoria agragada con exito.");
+			if(!estaciones0.getSelectedItem().toString().equals(estaciones1.getSelectedItem().toString())) {
+				if (bdPostre.consultaAgregarSQL(
+						"INSERT INTO Ruta VALUES ('"+nombreLinea+"', "+distancia.getText()+", "+duracion.getText()+", "+costo.getText()+", "+cantPasajeros.getText()+", "+estado.isSelected()+", '"+estaciones0.getSelectedItem()+"', '"+estaciones1.getSelectedItem()+"');", 
+						"Error al agregar la trayectoria.") == 1)
+					JOptionPane.showMessageDialog(null, "Trayectoria agragada con exito.");
+				
+			}else {
+				JOptionPane.showMessageDialog(null, "Estaciones iguales: tienen que ser diferente.");
+			}
 		});
 		JButton boton1 = new JButton("Finalizar");
 		boton1.addActionListener( e -> crearLinea());
@@ -831,10 +953,10 @@ public class MainAPP{
 		panel.setLayout(new GridBagLayout());
 
 		JTextField nombre = new JTextField(20);
-		JTextField horarioApertura0 = new JTextField(5);
-		JTextField horarioApertura1 = new JTextField(5);
-		JTextField horarioCierre0 = new JTextField(5);
-		JTextField horarioCierre1 = new JTextField(5);
+		JTextField horarioApertura0 = new JTextField("00",5);
+		JTextField horarioApertura1 = new JTextField("00",5);
+		JTextField horarioCierre0 = new JTextField("00",5);
+		JTextField horarioCierre1 = new JTextField("00",5);
 		JCheckBox estado = new JCheckBox("Habilitada");
 
 		JLabel etiqueta0 = new JLabel("Nombre ");

@@ -18,12 +18,8 @@ public class LineaTransporte {
 		this.activa=estado;
 	}
 	
-	public void setNombre(String nombre) {
-		this.nombre=nombre;
-	}
-	
-	public void setColor(String color) {
-		this.color=color;
+	public String getColor() {
+		return this.color;
 	}
 	
 	public void cambiarEstado() {
@@ -45,8 +41,8 @@ public class LineaTransporte {
 		ArrayList<Ruta> ruCop = new ArrayList<Ruta>();
 		for(Ruta ruta : rutas) ruCop.add(ruta);
 		return caminoCortoCosto(ruCop, origen, destino, 0, camino);
-		
 	}
+	
 	private int caminoCortoCosto(ArrayList<Ruta> ru, Estacion origen, Estacion destino, int tam, ArrayList<Estacion> camino) {
 		ArrayList<Ruta> ruCop = new ArrayList<Ruta>();
 		ArrayList<Ruta> encontrado = new ArrayList<Ruta>();

@@ -51,7 +51,7 @@ public class Ruta {
 		return this.distancia;
 	}
 	
-	
-	
-	
+	public int cantPasajeros() {
+		return this.cantPasajeros;
+	}	
 }
