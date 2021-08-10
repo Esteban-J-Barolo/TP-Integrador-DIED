@@ -303,4 +303,54 @@ public class LineaTransporte {
 		return panel;
 	}
 
+	public int flujoMax(Estacion origen, Estacion destino) {
+		ArrayList<Ruta> ruCop = new ArrayList<Ruta>();
+		for(Ruta ruta : rutas) ruCop.add(ruta);
+		return flujoMaxRep(ruCop, origen, destino, 0);
+	}
+
+	private int flujoMaxRep(ArrayList<Ruta> ru, Estacion origen, Estacion destino, int cant) {
+		ArrayList<Ruta> encontrado = new ArrayList<Ruta>();
+		ArrayList<Ruta> encontrado2 = new ArrayList<Ruta>();
+		if (!ru.isEmpty()) {
+			for (Ruta ruta : ru) {
+				if(ruta.isOrigen(origen)) {					
+					if(ruta.isDestino(destino)) encontrado2.add(ruta);
+					else encontrado.add(ruta);
+				}
+			}
+			if(encontrado2.size()==1 || encontrado.size()>0) {
+				int r=0;
+				if( encontrado2.size()==1 ) {
+					r=encontrado2.get(0).cantPasajeros()+cant;
+				}
+				if(encontrado.size()>0) {
+					if(encontrado.size()==1) {
+						ArrayList<Ruta> ruCop = new ArrayList<Ruta>();
+						for(Ruta ruta : ru) ruCop.add(ruta);
+						for(Ruta ruta : encontrado) ruCop.remove(ruta);
+						r+=flujoMaxRep(ruCop, encontrado.get(0).estacionDestino(), destino, cant+encontrado.get(0).cantPasajeros());
+					}else {
+						for(Ruta ruta : encontrado) {
+							ArrayList<Ruta> ruCop = new ArrayList<Ruta>();
+							for(Ruta ruta1 : ru) ruCop.add(ruta1);
+							for(Ruta ruta1 : encontrado) ruCop.remove(ruta1);
+							r+=flujoMaxRep(ruCop, ruta.estacionDestino(), destino, cant+ruta.cantPasajeros());
+						}
+					}
+				}
+				return r;
+			}else {
+				return 0;
+			}
+		}else {
+			return 0;
+		}
+	}
+
+	public int pageRank(Estacion estacion) {
+		int cant=0;
+		for(Ruta ru : rutas) if(ru.isDestino(estacion)) cant++;
+		return cant;
+	}
 }
