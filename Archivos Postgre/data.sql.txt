@@ -1,0 +1,45 @@
+INSERT INTO Usuario 
+VALUES ('prue', 123),
+('prue1', 123),
+('prue2', 123),
+('prue3', 123);
+
+INSERT INTO Estacion
+VALUES ('E1',0800,2200,true),
+('E2',0800,2200,true),
+('E3',0800,2200,true),
+('E4',0800,2200,true),
+('E5',0800,2200,true),
+('E6',0800,2200,true),
+('E7',0800,2200,true);
+
+INSERT INTO Mantenimiento
+VALUES ('E3',CAST('1/08/2021' AS DATE),CAST('3/08/2021' AS DATE),'Observacion 0'),
+('E5',CAST('21/07/2021' AS DATE),CAST('22/07/2021' AS DATE),'Observacion 1'),
+('E6',CAST('10/07/2021' AS DATE),CAST('11/07/2021' AS DATE),'Observacion 2');
+
+INSERT INTO LineaTransporte
+VALUES ('L1','Rojo',true),
+('L2','Verde',true),
+('L3','Azul',true);
+
+INSERT INTO Ruta
+VALUES ('L1',30,2,20,20,true,'E1','E5'),
+('L1',45,3,20,20,true,'E5','E4'),
+('L1',15,1,20,20,true,'E4','E7'),
+('L1',50,4,20,20,true,'E7','E3'),
+('L1',60,5,20,10,true,'E7','E2'),
+('L1',45,3,20,10,true,'E2','E1'),
+('L1',65,5,20,20,true,'E3','E1'),
+('L2',45,3,15,30,true,'E1','E2'),
+('L2',85,7,15,30,true,'E2','E3'),
+('L2',55,4,15,30,true,'E3','E7'),
+('L2',45,3,15,30,true,'E7','E6'),
+('L2',30,2,15,30,true,'E6','E5'),
+('L2',30,2,15,30,true,'E5','E1'),
+('L3',65,5,30,10,true,'E1','E4'),
+('L3',55,4,30,10,true,'E4','E3'),
+('L3',100,12,30,10,true,'E3','E6'),
+('L3',10,2,30,10,true,'E6','E5'),
+('L3',20,2,30,10,true,'E5','E1');
+

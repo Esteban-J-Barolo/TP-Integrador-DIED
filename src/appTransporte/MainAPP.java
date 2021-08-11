@@ -302,21 +302,21 @@ public class MainAPP{
 		for(LineaTransporte linea: lineas) {
 			ArrayList<Estacion> rutaR2 = new ArrayList<Estacion>(), rutaC2= new ArrayList<Estacion>(), rutaB2= new ArrayList<Estacion>();
 			int velCam = linea.velocidadCamino(estaciones.get(origen), estaciones.get(destino), rutaR2);
-			if( velocidad>=velCam || velocidad==-1 ){
+			if( (velocidad>=velCam || velocidad==-1) && velCam!=-1 ){
 				velocidad=velCam;
 				lineaRapida=linea;
 				rutaR=rutaR2;
 				etiqueta1.setText("Linea: "+linea.getNombre()+" Color: "+linea.getColor());
 			}
 			int tamCam = linea.tamCamino(estaciones.get(origen), estaciones.get(destino), rutaC2);
-			if( tamanio>=tamCam || tamanio==-1 ){
+			if( (tamanio>=tamCam || tamanio==-1) && tamCam!=-1){
 				tamanio=tamCam;
 				lineaCorta=linea;
 				rutaC=rutaC2;
 				etiqueta2.setText("Linea: "+linea.getNombre()+" Color: "+linea.getColor());
 			}
 			int costoCam = linea.costoCamino(estaciones.get(origen), estaciones.get(destino), rutaB2);
-			if( costo>=costoCam || costo==-1 ){
+			if( (costo>=costoCam || costo==-1) && costoCam!=-1 ){
 				costo=costoCam;
 				lineaBarata=linea;
 				rutaB=rutaB2;
@@ -1049,20 +1049,20 @@ public class MainAPP{
 		estaciones0.addActionListener( e -> {
 			int flujo=0;
 			for(LineaTransporte linea : lineas) {
-				flujo+=linea.flujoMax(estaciones.get(estaciones0.getSelectedItem().toString()), estaciones.get(estaciones1.getSelectedItem().toString()));
+				flujo+=linea.flujoMax(estaciones.get(estaciones0.getSelectedItem().toString()), estaciones.get(estaciones1.getSelectedItem().toString()));	
 			}
 			etiqueta3.setText(String.valueOf(flujo));
 		});
 		estaciones1.addActionListener( e -> {
 			int flujo=0;
 			for(LineaTransporte linea : lineas) {
-				flujo+=linea.flujoMax(estaciones.get(estaciones0.getSelectedItem().toString()), estaciones.get(estaciones1.getSelectedItem().toString()));
+				flujo+=linea.flujoMax(estaciones.get(estaciones0.getSelectedItem().toString()), estaciones.get(estaciones1.getSelectedItem().toString()));	
 			}
 			etiqueta3.setText(String.valueOf(flujo));
 		});
 		int flujo=0;
 		for(LineaTransporte linea : lineas) {
-			flujo+=linea.flujoMax(estaciones.get(estaciones0.getSelectedItem().toString()), estaciones.get(estaciones1.getSelectedItem().toString()));
+			flujo+=linea.flujoMax(estaciones.get(estaciones0.getSelectedItem().toString()), estaciones.get(estaciones1.getSelectedItem().toString()));	
 		}
 		etiqueta3.setText(String.valueOf(flujo));
 
