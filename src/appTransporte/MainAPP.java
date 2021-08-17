@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -224,10 +225,12 @@ public class MainAPP{
 		JButton boton0 = new JButton("Atras");
 		boton0.addActionListener(e -> accesoUsuario());
 		
+		JCheckBox criterio = new JCheckBox("Solo lineas");
+		
 		JButton boton1 = new JButton("Siguiente");
 		boton1.addActionListener(e -> {
 			if(!estaciones0.getSelectedItem().equals(estaciones1.getSelectedItem()))
-			verRecorridos(estaciones0.getSelectedItem().toString(), estaciones1.getSelectedItem().toString());
+			verRecorridos(estaciones0.getSelectedItem().toString(), estaciones1.getSelectedItem().toString(), criterio.isSelected());
 			else JOptionPane.showMessageDialog(null, "Por favor seleccione estaciones diferentes.");
 		});
 		
@@ -262,6 +265,8 @@ public class MainAPP{
 		panel.add(estaciones0, constraints);
 		constraints.gridx = 1;
 		panel.add(estaciones1, constraints);
+		constraints.gridx = 2;
+		panel.add(criterio, constraints);
 		constraints.gridx = 0;
 		constraints.gridy = 2;
 		panel.add(boton0, constraints);
@@ -273,24 +278,19 @@ public class MainAPP{
 		
 	}
 
-	private void verRecorridos(String origen, String destino) {
+	private void verRecorridos(String origen, String destino, boolean criterio) {
 		Map <String, Estacion> estaciones = new HashMap<String, Estacion>();
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		
-		LineaTransporte lineaRapida = null, lineaCorta=null, lineaBarata=null;
-		ArrayList<Estacion> rutaR = new ArrayList<Estacion>(), rutaC= new ArrayList<Estacion>(), rutaB= new ArrayList<Estacion>();
+		ArrayList<Ruta> rutaR = new ArrayList<Ruta>(), rutaC = new ArrayList<Ruta>(), rutaB = new ArrayList<Ruta>();
 		
 		JButton boton0 = new JButton("Atras");
 		boton0.addActionListener(e -> crearVenta());
 		
 		JButton boton1 = new JButton("Siguiente");
 		
-		
 		JLabel etiqueta0 = new JLabel("Selececcione");
-		JLabel etiqueta1 = new JLabel();
-		JLabel etiqueta2 = new JLabel();
-		JLabel etiqueta3 = new JLabel();
 		
 		JCheckBox opcion1 = new JCheckBox("El más rápido");
 		JCheckBox opcion2 = new JCheckBox("El de menor distancia");
@@ -298,58 +298,76 @@ public class MainAPP{
 		
 		actualizarLinea(estaciones, new ArrayList<String>());
 		
-		int velocidad=-1, tamanio=-1, costo=-1;
-		for(LineaTransporte linea: lineas) {
-			ArrayList<Estacion> rutaR2 = new ArrayList<Estacion>(), rutaC2= new ArrayList<Estacion>(), rutaB2= new ArrayList<Estacion>();
-			int velCam = linea.velocidadCamino(estaciones.get(origen), estaciones.get(destino), rutaR2);
-			if( (velocidad>=velCam || velocidad==-1) && velCam!=-1 ){
-				velocidad=velCam;
-				lineaRapida=linea;
-				rutaR=rutaR2;
-				etiqueta1.setText("Linea: "+linea.getNombre()+" Color: "+linea.getColor());
+		LineaTransporte rutasLineas = new LineaTransporte("Conjunto de rutas", "infinito", true);
+		
+		LineaTransporte lineaR=null, lineaC=null, lineaB=null;
+		if(criterio) {	
+			int velocidad=-1, tamanio=-1, costo=-1;
+			for(LineaTransporte linea : lineas) {
+				ArrayList<Ruta> rutaR2 = new ArrayList<Ruta>(), rutaC2 = new ArrayList<Ruta>(), rutaB2 = new ArrayList<Ruta>();
+				int velCam = linea.velocidadCamino(estaciones.get(origen), estaciones.get(destino), rutaR2);
+				if( (velocidad>velCam || velocidad==-1) && velCam!=-1 ){
+					velocidad=velCam;
+					lineaR=linea;
+					rutaR.clear();
+					for(Ruta ru : rutaR2) rutaR.add(ru);
+					
+				}
+				int tamCam = linea.tamCamino(estaciones.get(origen), estaciones.get(destino), rutaC2);
+				if( (tamanio>tamCam || tamanio==-1) && tamCam!=-1){
+					tamanio=tamCam;
+					lineaC=linea;
+					rutaC.clear();
+					for(Ruta ru : rutaC2) {
+						rutaC.add(ru);
+					}
+				}
+				int costoCam = linea.costoCamino(estaciones.get(origen), estaciones.get(destino), rutaB2);
+				if( (costo>costoCam || costo==-1) && costoCam!=-1 ){
+					costo=costoCam;
+					lineaB=linea;
+					rutaB.clear();
+					for(Ruta ru : rutaB2) {
+						rutaB.add(ru);
+					}
+				}
 			}
-			int tamCam = linea.tamCamino(estaciones.get(origen), estaciones.get(destino), rutaC2);
-			if( (tamanio>=tamCam || tamanio==-1) && tamCam!=-1){
-				tamanio=tamCam;
-				lineaCorta=linea;
-				rutaC=rutaC2;
-				etiqueta2.setText("Linea: "+linea.getNombre()+" Color: "+linea.getColor());
+		}else {
+			
+			for(LineaTransporte linea: lineas) {
+				for(Ruta ruta : linea.getRutas()) rutasLineas.agregarRuta(ruta);
 			}
-			int costoCam = linea.costoCamino(estaciones.get(origen), estaciones.get(destino), rutaB2);
-			if( (costo>=costoCam || costo==-1) && costoCam!=-1 ){
-				costo=costoCam;
-				lineaBarata=linea;
-				rutaB=rutaB2;
-				etiqueta3.setText("Linea: "+linea.getNombre()+" Color: "+linea.getColor());
-			}
+			rutasLineas.velocidadCamino(estaciones.get(origen), estaciones.get(destino), rutaR);
+			rutasLineas.tamCamino(estaciones.get(origen), estaciones.get(destino), rutaC);
+			rutasLineas.costoCamino(estaciones.get(origen), estaciones.get(destino), rutaB);
 		}
-		if(rutaR.isEmpty()) {
+		
+		GridBagConstraints constraints = new GridBagConstraints();
+		
+		if(rutaB.isEmpty()) {
 			JOptionPane.showMessageDialog(null, "No hay una ruta de la estación "+origen+" a la "+destino+"");
 			crearVenta();
 		}else {
-			LineaTransporte lineaR = lineaRapida, lineaC = lineaCorta, lineaB = lineaBarata;
-			ArrayList<Estacion> rutaR2=rutaR, rutaC2=rutaC, rutaB2=rutaB;
 			boton1.addActionListener(e -> {
 				if(opcion1.isSelected()) {
 					//mas rapido
-					boleto(lineaR, estaciones.get(origen), estaciones.get(destino), rutaR2);
+					boleto(estaciones.get(origen), estaciones.get(destino), rutaR);
 				}else {
 					if(opcion2.isSelected()) {
 						//menor distancia
-						boleto(lineaC, estaciones.get(origen), estaciones.get(destino), rutaC2);
+						boleto(estaciones.get(origen), estaciones.get(destino), rutaC);
 					}else {
 						if(opcion3.isSelected()) {
 							//mas barato
-							boleto(lineaB, estaciones.get(origen), estaciones.get(destino), rutaB2);
+							boleto(estaciones.get(origen), estaciones.get(destino), rutaB);
 						}else {
 							//no seleccionao ninguno
 							JOptionPane.showMessageDialog(null, "Trayecto no seleccionado.");
 						}
 					}
 				}
+				
 			});
-			
-			GridBagConstraints constraints = new GridBagConstraints();
 			
 			constraints.gridx = 0;
 			constraints.gridy = 0;
@@ -370,33 +388,29 @@ public class MainAPP{
 			panel.add(boton0, constraints);
 			constraints.gridx = 1;
 			panel.add(boton1, constraints);
-			
-			constraints.gridx = 2;
-			constraints.gridy = 0;
-			panel.add(etiqueta1, constraints);
-			constraints.gridy = 2;
-			panel.add(etiqueta2, constraints);
-			constraints.gridy = 4;
-			panel.add(etiqueta3, constraints);
-			
+						
 			constraints.gridx = 2;
 			constraints.gridy = 1;
 			constraints.ipadx = 200;
 			constraints.ipady = 30;
 			constraints.insets = new Insets(0, 0, 0, 0);
-			panel.add(lineaR.dibujar(rutaR), constraints);
+			if(criterio) panel.add(lineaR.dibujar(rutaR), constraints);
+			else panel.add(rutasLineas.dibujar(rutaR), constraints);
 			constraints.gridy = 3;
-			panel.add(lineaC.dibujar(rutaC), constraints);
+			if(criterio) panel.add(lineaC.dibujar(rutaC), constraints);
+			else panel.add(rutasLineas.dibujar(rutaC), constraints);
 			constraints.gridy = 5;
-			panel.add(lineaB.dibujar(rutaB), constraints);
-
+			if(criterio) panel.add(lineaB.dibujar(rutaB), constraints);
+			else panel.add(rutasLineas.dibujar(rutaB), constraints);
+						
 			ventanaPrincipal.setContentPane(panel);
 			ventanaPrincipal.setVisible(true);
 			
 		}
 	}
 	
-	private void boleto(LineaTransporte linea, Estacion origen, Estacion destino, ArrayList<Estacion> camino) {
+	private void boleto(Estacion origen, Estacion destino, ArrayList<Ruta> camino) {
+		LineaTransporte li = new LineaTransporte(null, null, false);
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		
@@ -423,7 +437,7 @@ public class MainAPP{
 		int num = numBoleto+1;
 		boton1.addActionListener(e -> {
 			//crear boleto en la base de datos
-			if (bdPostre.consultaAgregarSQL("INSERT INTO Boleto VALUES ("+ num +", '"+origen.getNombre()+"', '"+destino.getNombre()+"', '"+correo.getText()+"', '"+nombre.getText()+"', '"+LocalDate.now().toString()+"', "+linea.costoCamino(origen, destino, new ArrayList<Estacion>())+" );", "Boleto error.") == 1)
+			if (bdPostre.consultaAgregarSQL("INSERT INTO Boleto VALUES ("+ num +", '"+origen.getNombre()+"', '"+destino.getNombre()+"', '"+correo.getText()+"', '"+nombre.getText()+"', '"+LocalDate.now().toString()+"', "+li.costoCamino(camino)+" );", "Boleto error.") == 1)
 				JOptionPane.showMessageDialog(null, "Boleto creado.");
 			crearVenta();
 		});
@@ -440,8 +454,8 @@ public class MainAPP{
 		JLabel etiqueta30 = new JLabel(LocalDate.now().toString());
 		JLabel etiqueta40 = new JLabel(origen.getNombre());
 		JLabel etiqueta50 = new JLabel(destino.getNombre());
-		JLabel etiqueta60 = new JLabel(linea.mostrarCamino(camino));
-		JLabel etiqueta70 = new JLabel( String.valueOf(linea.costoCamino(origen, destino, new ArrayList<Estacion>())) );
+		JLabel etiqueta60 = new JLabel(li.mostrarCamino(camino));
+		JLabel etiqueta70 = new JLabel( String.valueOf(li.costoCamino(camino)) );
 		
 		GridBagConstraints constraints = new GridBagConstraints();
 		
@@ -618,15 +632,20 @@ public class MainAPP{
 		panel.setLayout(new GridBagLayout());
 
 		JTextField nombre = new JTextField(20);
-		JTextField color = new JTextField(20);
+		
+		JComboBox<String> colores = new JComboBox<String>();
+
+		colores.addItem("Rojo");
+		colores.addItem("Verde");
+		colores.addItem("Azul");
+		colores.addItem("Amarillo");
 
 		JLabel etiqueta0 = new JLabel("Nombre ");
-		JLabel etiqueta1 = new JLabel("Color ");
 		JCheckBox estado = new JCheckBox("Habilitada");
 
 		JButton boton0 = new JButton("Crear");
 		boton0.addActionListener( e -> {
-			if (bdPostre.consultaAgregarSQL("INSERT INTO LineaTransporte VALUES ('"+nombre.getText()+"', '"+color.getText()+"', "+estado.isSelected()+");", "No se pudo agregar la linea.") == 1)
+			if (bdPostre.consultaAgregarSQL("INSERT INTO LineaTransporte VALUES ('"+nombre.getText()+"', '"+colores.getSelectedItem()+"', "+estado.isSelected()+");", "No se pudo agregar la linea.") == 1)
 				JOptionPane.showMessageDialog(null, "Linea agragada con exito.");
 		});
 		JButton boton1 = new JButton("Atras");
@@ -642,14 +661,14 @@ public class MainAPP{
 		constraints.gridheight = 1;
 		constraints.insets = new Insets(5, 5, 5, 5);
 		panel.add(etiqueta0, constraints);
-		constraints.gridy = 1;
-		panel.add(etiqueta1, constraints);
 
 		constraints.gridx = 1;
 		constraints.gridy = 0;
 		panel.add(nombre, constraints);
 		constraints.gridy = 1;
-		panel.add(color, constraints);
+		constraints.gridwidth = 2;
+		panel.add(colores, constraints);
+		constraints.gridwidth = 1;
 		
 		constraints.gridy = 3;
 		panel.add(estado, constraints);
@@ -1124,15 +1143,16 @@ public class MainAPP{
         tabla.setModel(modelo);
         
         modelo.setRowCount(0);
-        int pageR=0;
+		
+		LineaTransporte rutasLineas = new LineaTransporte("Conjunto de rutas", "infinito", true);
+        for(LineaTransporte linea: lineas) {
+			for(Ruta ruta : linea.getRutas()) rutasLineas.agregarRuta(ruta);
+		}
+		Map<String, Double> pageR = rutasLineas.pageRank(estaciones2);
 		for(String estacion : estaciones2) {
 			datoColumna[0]=estacion;
-			for(LineaTransporte linea : lineas) {
-				pageR+=linea.pageRank(estaciones.get(estacion));
-			}
-			datoColumna[1]=String.valueOf( pageR );
+			datoColumna[1]=new DecimalFormat("#0.0#").format( pageR.get(estacion) );
 			datoColumnaList.add(datoColumna.clone());
-			pageR=0;
 		}
 		datoColumnaList.sort(new Comparator<String[]>() {
 		    public int compare(String[] o1, String[] o2) {
@@ -1191,9 +1211,9 @@ public class MainAPP{
 				
 				ResultSet resultado2 = null;
 				
-				resultado2 = bdPostre.consultaSQL("SELECT distancia, duracion, costo, cantPasajeros, activa, nombre_origen, nombre_destino FROM Ruta WHERE nombre_linea='"+resultado.getString(1)+"'");
+				resultado2 = bdPostre.consultaSQL("SELECT distancia, duracion, costo, cantPasajeros, activa, nombre_origen, nombre_destino FROM Ruta WHERE nombre_linea='"+resultado.getString(1)+"' AND activa");
 				while(resultado2.next()) {
-					linea.agregarRuta(new Ruta(estaciones.get(resultado2.getString(6)), estaciones.get(resultado2.getString(7)), resultado2.getInt(1), resultado2.getInt(2), resultado2.getInt(3), resultado2.getInt(4), resultado2.getBoolean(5)));										
+					linea.agregarRuta(new Ruta(estaciones.get(resultado2.getString(6)), estaciones.get(resultado2.getString(7)), resultado2.getInt(1), resultado2.getInt(2), resultado2.getInt(3), resultado2.getInt(4), resultado2.getBoolean(5), resultado.getString(2)));										
 				}
 				lineas.add(linea);
 			}
@@ -1201,4 +1221,5 @@ public class MainAPP{
 			System.out.println("error en buscar lineas de transporte "+e1);
 		}
 	}
+
 }

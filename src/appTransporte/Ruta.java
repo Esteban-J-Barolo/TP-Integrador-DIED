@@ -8,8 +8,9 @@ public class Ruta {
 	private int costo;//moneda
 	private Estacion origen;
 	private Estacion destino;
+	private String color;
 	
-	public Ruta(Estacion origen, Estacion destino, int distancia, int duracion, int costo, int cantPasajeros, boolean activa) {
+	public Ruta(Estacion origen, Estacion destino, int distancia, int duracion, int costo, int cantPasajeros, boolean activa, String color) {
 		this.origen=origen;
 		this.destino=destino;
 		this.distancia=distancia;
@@ -17,6 +18,7 @@ public class Ruta {
 		this.costo=costo;
 		this.cantPasajeros=cantPasajeros;
 		this.activa=activa;
+		this.color=color;
 	}
 	
 	public void cambiarEstado() {
@@ -53,5 +55,9 @@ public class Ruta {
 	
 	public int cantPasajeros() {
 		return this.cantPasajeros;
+	}
+
+	public String getColor() {
+		return this.color;
 	}	
 }

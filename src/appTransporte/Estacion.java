@@ -34,8 +34,8 @@ public class Estacion {
     	return this.nombre;
     }
     
-    public FiguraCirculo dibujar() {
-		return new FiguraCirculo(this.nombre);
+    public FiguraCirculo dibujar(String color) {
+		return new FiguraCirculo(this.nombre, color);
     }
 
 }

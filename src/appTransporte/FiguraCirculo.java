@@ -16,8 +16,18 @@ public class FiguraCirculo extends JPanel{
 	private int squareH = 30;
 	private String nombre="";
 	
-	public FiguraCirculo(String nombre) {
+	public FiguraCirculo(String nombre, String color) {
 		this.nombre=nombre;
+		this.colorFondo = this.darColor(color);
+	}
+	
+	private Color darColor(String color) {
+		if(color.equals("Rojo")) return Color.RED;
+		if(color.equals("Verde")) return Color.GREEN;
+		if(color.equals("Azul")) return Color.BLUE;
+		if(color.equals("Amarillo")) return Color.YELLOW;
+		return Color.white;
+		
 	}
 	
 	protected void paintComponent(Graphics g) {
