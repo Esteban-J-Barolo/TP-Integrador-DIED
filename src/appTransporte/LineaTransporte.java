@@ -36,16 +36,6 @@ public class LineaTransporte {
 	public void agregarRuta(Ruta r) {
 		rutas.add(r);
 	}
-
-	public String mostrarCamino(ArrayList<Ruta> camino) {
-		String salida="";
-		String salida2="";
-		for(Ruta estacion : camino) {
-			salida=salida.concat(estacion.estacionOrigen().getNombre()+" ");
-			salida2=estacion.estacionDestino().getNombre();
-		}
-		return salida+salida2;
-	}
 	
 	public int costoCamino(Estacion origen, Estacion destino, ArrayList<Ruta> camino) {
 		ArrayList<Ruta> ruCop = new ArrayList<Ruta>();
@@ -445,11 +435,5 @@ public class LineaTransporte {
 		}
 		if(fin) return pageRank;
 		else return pageRankRep(pageRank, estaciones);
-	}
-
-	public int costoCamino(ArrayList<Ruta> camino) {
-		int ret=0;
-		for(Ruta ru : camino) ret+=ru.costo();
-		return ret;
 	}
 }
